@@ -1,0 +1,55 @@
+#!/bin/bash/
+
+date=`date +%m-%d-%y-%T`
+function Namefile()
+{
+read userInput
+filename="$userInput$date.txt"
+echo $filename
+# Script up until this point in charge of file naming
+}
+
+function ifTableGet()
+{
+echo "$(ifconfig)" 
+}
+
+# MAIN EXECUTION BLOCK
+currentDirectory=$(pwd)
+echo "This script will dump network info into a new folder in your current directory. \
+What would you like your file name to be? I would avoid spaces for easier finding later."
+filename=$(Namefile)
+foldername="NetworkScriptLogs"
+touch "$filename"
+chmod 777 "$currentDirectory"/"$filename"
+# Creates empty text file with user defined file name and current date/time appended
+
+# Deals With directory for storing network file
+mkdir "$foldername"
+chmod 777 "$foldername"
+mv "$filename" "$currentDirectory/$foldername"
+scriptFileLocation="$currentDirectory/$foldername/$filename"
+echo "Your filename is $filename its located in $scriptFileLocation"
+
+# IP DUMP SECTION
+CurrentIps="$(ifTableGet)"
+echo -e "This section of the network dump is Ip Infos from IFconfig\n" >> "$scriptFileLocation"
+echo "$CurrentIps" >> "$scriptFileLocation"
+
+# Port and Socket Dump
+echo -e "\nThis section of the network dump is open ports from ss -tulpn. SS is socket statistics. tulpn means (l)istening for (t)cp and (u)dp and what (p)rogram and (n)umerical address.\n" \
+>> "$scriptFileLocation"
+echo "$(ss -tulpn)" >> "$scriptFileLocation"
+
+# Fail2Ban installed?
+echo -e "\nThis section shows the current install directory (if it exits) of fail2ban." >> "$scriptFileLocation"
+echo "$(find /etc -name fail2ban)" >> "$scriptFileLocation"
+
+# Arp Table
+echo -e "\nThis section shows the arp table of the host kernel.\n" >> "$scriptFileLocation"
+echo "$(arp)" >> "$scriptFileLocation"
+
+# Script executor
+echo -e  "\nThis script was created by $(whoami) at $date\n" >> "$scriptFileLocation"
+
+
